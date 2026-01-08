@@ -2,32 +2,7 @@
   <div class="export-panel">
     <h3 class="section-title">Export Theme</h3>
     
-    <!-- 导出选项 -->
-    <div class="export-options">
-      <h4 class="options-title">导出模式</h4>
-      <div class="checkbox-group">
-        <label class="checkbox-item">
-          <input type="checkbox" v-model="options.includeLight" />
-          <span>Light Mode</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" v-model="options.includeDark" />
-          <span>Dark Mode</span>
-        </label>
-      </div>
-      
-      <h4 class="options-title">包含内容</h4>
-      <div class="checkbox-group">
-        <label class="checkbox-item">
-          <input type="checkbox" v-model="options.includePalettes" />
-          <span>调色板</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" v-model="options.includeCustomColors" />
-          <span>自定义颜色</span>
-        </label>
-      </div>
-    </div>
+    <p class="format-note">官方 Material Theme Builder 格式</p>
     
     <!-- JSON 预览 -->
     <div class="json-preview">
@@ -58,7 +33,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
+import { useTheme } from '../composables/useTheme'
 
 const props = defineProps({
   theme: {
@@ -69,46 +45,20 @@ const props = defineProps({
 
 const emit = defineEmits(['copy', 'download'])
 
-const options = ref({
-  includeLight: true,
-  includeDark: true,
-  includePalettes: true,
-  includeCustomColors: true
-})
+const { exportThemeOfficial } = useTheme()
 
 const showCopied = ref(false)
 
-// 生成 JSON 输出
+// 生成官方格式 JSON 输出
 const jsonOutput = computed(() => {
-  const output = {
-    source: props.theme.source,
-    contrastLevel: props.theme.contrastLevel
-  }
-  
-  if (options.value.includePalettes) {
-    output.palettes = props.theme.palettes
-  }
-  
-  output.schemes = {}
-  if (options.value.includeLight) {
-    output.schemes.light = props.theme.lightRoles
-  }
-  if (options.value.includeDark) {
-    output.schemes.dark = props.theme.darkRoles
-  }
-  
-  if (options.value.includeCustomColors && props.theme.customColors?.length > 0) {
-    output.customColors = props.theme.customColors
-  }
-  
-  return JSON.stringify(output, null, 2)
+  return exportThemeOfficial()
 })
 
 // 预览（截断）
 const jsonPreview = computed(() => {
   const lines = jsonOutput.value.split('\n')
   if (lines.length > 30) {
-    return lines.slice(0, 30).join('\n') + '\n  ...\n}'
+    return lines.slice(0, 30).join('\n') + '\n    ...\n}'
   }
   return jsonOutput.value
 })
@@ -152,7 +102,7 @@ function downloadFile() {
 }
 
 .section-title {
-  margin: 0 0 16px 0;
+  margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 500;
   color: var(--on-surface);
@@ -160,37 +110,10 @@ function downloadFile() {
   letter-spacing: 0.5px;
 }
 
-.export-options {
-  margin-bottom: 16px;
-}
-
-.options-title {
-  margin: 0 0 8px 0;
+.format-note {
+  margin: 0 0 16px 0;
   font-size: 12px;
-  font-weight: 600;
   color: var(--on-surface-variant);
-}
-
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--on-surface);
-  cursor: pointer;
-}
-
-.checkbox-item input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
 }
 
 .json-preview {

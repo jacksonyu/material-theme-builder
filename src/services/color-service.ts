@@ -683,7 +683,7 @@ export interface ExportOptions {
 }
 
 /**
- * 将主题导出为 JSON 格式
+ * 将主题导出为 JSON 格式（旧格式，保留兼容）
  */
 export function exportThemeToJson(theme: any, options: ExportOptions = {}): string {
   const {
@@ -731,6 +731,121 @@ export function exportThemeToJson(theme: any, options: ExportOptions = {}): stri
   return JSON.stringify(output, null, 2)
 }
 
+// =====================
+// 官方格式导出
+// =====================
+
+/**
+ * 官方 tone 列表
+ */
+const OFFICIAL_TONES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100]
+
+/**
+ * 官方格式导出选项
+ */
+export interface OfficialExportOptions {
+  sourceColor: string
+  variant?: SchemeVariantType
+  specVersion?: SpecVersionType
+  customColors?: CustomColor[]
+  keyColorOverrides?: KeyColorOverrides
+  toneOverrides?: ToneOverrides
+}
+
+/**
+ * 生成符合官方 Theme Builder 格式的 scheme
+ */
+function generateSchemeForContrast(
+  sourceColorHex: string,
+  isDark: boolean,
+  contrastLevel: number,
+  options: OfficialExportOptions
+): Record<string, string> {
+  const theme = generateThemeFromColor(sourceColorHex, {
+    contrastLevel,
+    isDark,
+    variant: options.variant || SchemeVariant.TONAL_SPOT,
+    specVersion: options.specVersion || SpecVersion.SPEC_2025,
+    customColors: options.customColors || [],
+    keyColorOverrides: options.keyColorOverrides,
+    toneOverrides: options.toneOverrides
+  })
+  
+  // 添加 surfaceTint = primary
+  const roles = { ...theme.colorRoles }
+  roles.surfaceTint = roles.primary
+  
+  return roles
+}
+
+/**
+ * 提取官方格式调色板（使用官方 tone 列表）
+ */
+function extractOfficialPalettes(sourceColorHex: string): Record<string, Record<number, string>> {
+  const sourceColorArgb = argbFromHex(sourceColorHex)
+  const theme = themeFromSourceColor(sourceColorArgb, [])
+  
+  const extractTones = (palette: any): Record<number, string> => {
+    const result: Record<number, string> = {}
+    for (const tone of OFFICIAL_TONES) {
+      result[tone] = hexFromArgb(palette.tone(tone))
+    }
+    return result
+  }
+  
+  return {
+    primary: extractTones(theme.palettes.primary),
+    secondary: extractTones(theme.palettes.secondary),
+    tertiary: extractTones(theme.palettes.tertiary),
+    neutral: extractTones(theme.palettes.neutral),
+    'neutral-variant': extractTones(theme.palettes.neutralVariant)
+  }
+}
+
+/**
+ * 将主题导出为官方 Material Theme Builder JSON 格式
+ */
+export function exportThemeToOfficialJson(options: OfficialExportOptions): string {
+  const { sourceColor, customColors = [] } = options
+  
+  // 获取当前时间戳
+  const now = new Date()
+  const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+  
+  const output: any = {
+    description: `TYPE: CUSTOM\nMaterial Theme Builder export ${timestamp}`,
+    seed: sourceColor,
+    coreColors: {
+      primary: sourceColor
+    }
+  }
+  
+  // 转换 extendedColors 为官方格式
+  if (customColors.length > 0) {
+    output.extendedColors = customColors.map(c => ({
+      name: c.name.toLowerCase().replace(/\s+/g, ''),
+      color: c.value,
+      description: '',
+      harmonized: c.harmonize
+    }))
+  }
+  
+  // 生成 6 种 schemes 变体
+  output.schemes = {
+    'light': generateSchemeForContrast(sourceColor, false, 0, options),
+    'light-medium-contrast': generateSchemeForContrast(sourceColor, false, 0.5, options),
+    'light-high-contrast': generateSchemeForContrast(sourceColor, false, 1, options),
+    'dark': generateSchemeForContrast(sourceColor, true, 0, options),
+    'dark-medium-contrast': generateSchemeForContrast(sourceColor, true, 0.5, options),
+    'dark-high-contrast': generateSchemeForContrast(sourceColor, true, 1, options)
+  }
+  
+  // 生成官方格式调色板
+  output.palettes = extractOfficialPalettes(sourceColor)
+  
+  return JSON.stringify(output, null, 4)
+}
+
 /**
  * HEX 颜色验证
  */
@@ -739,3 +854,4 @@ export function isValidHex(hex: string): boolean {
 }
 
 export { hexFromArgb, argbFromHex }
+

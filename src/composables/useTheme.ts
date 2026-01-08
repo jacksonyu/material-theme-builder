@@ -4,7 +4,8 @@
 import { ref, computed } from 'vue'
 import { 
   generateThemeFromColor, 
-  exportThemeToJson, 
+  exportThemeToJson,
+  exportThemeToOfficialJson,
   SchemeVariant, 
   SCHEME_VARIANT_INFO, 
   SpecVersion, 
@@ -14,6 +15,7 @@ import {
   type SchemeVariantType,
   type SpecVersionType,
   type ExportOptions,
+  type OfficialExportOptions,
   type KeyColorOverrides,
   type ToneOverrides,
   type ToneOverride
@@ -198,15 +200,27 @@ export function useTheme() {
     customColors.value = customColors.value.filter(c => c.id !== id)
   }
   
-  // 导出主题 JSON
+  // 导出主题 JSON（旧格式）
   function exportTheme(options: Partial<ExportOptions> = {}) {
     const mergedOptions = { ...exportOptions.value, ...options }
     return exportThemeToJson(fullTheme.value, mergedOptions)
   }
   
+  // 导出主题 JSON（官方格式）
+  function exportThemeOfficial() {
+    return exportThemeToOfficialJson({
+      sourceColor: sourceColor.value,
+      variant: variant.value,
+      specVersion: specVersion.value,
+      customColors: customColors.value,
+      keyColorOverrides: keyColorOverrides.value,
+      toneOverrides: toneOverrides.value
+    })
+  }
+  
   // 下载主题 JSON
   function downloadTheme(filename: string = 'material-theme.json') {
-    const json = exportTheme()
+    const json = exportThemeOfficial()
     const blob = new Blob([json], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -218,7 +232,7 @@ export function useTheme() {
   
   // 复制到剪贴板
   async function copyThemeToClipboard() {
-    const json = exportTheme()
+    const json = exportThemeOfficial()
     await navigator.clipboard.writeText(json)
   }
   
@@ -257,6 +271,7 @@ export function useTheme() {
     updateCustomColor,
     removeCustomColor,
     exportTheme,
+    exportThemeOfficial,
     downloadTheme,
     copyThemeToClipboard,
     
