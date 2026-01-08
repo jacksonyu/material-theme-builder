@@ -21,6 +21,17 @@
         <ContrastSlider v-model="contrastLevel" />
         <SpecVersionSelector v-model="specVersion" :contrast-level="contrastLevel" />
         <VariantSelector v-model="variant" />
+        <KeyColorEditor
+          v-model="keyColorOverrides"
+          @set="setKeyColorOverride"
+        />
+        <ToneOverridePanel
+          v-model="toneOverrides"
+          :custom-colors="customColors"
+          @add="addToneOverride"
+          @remove="removeToneOverride"
+          @update="updateToneOverride"
+        />
       </aside>
       
       <section class="main-content">
@@ -55,6 +66,8 @@ import ColorPicker from './components/ColorPicker.vue'
 import ContrastSlider from './components/ContrastSlider.vue'
 import SpecVersionSelector from './components/SpecVersionSelector.vue'
 import VariantSelector from './components/VariantSelector.vue'
+import KeyColorEditor from './components/KeyColorEditor.vue'
+import ToneOverridePanel from './components/ToneOverridePanel.vue'
 import CustomColorEditor from './components/CustomColorEditor.vue'
 import PhonePreview from './components/PhonePreview.vue'
 import ThemePreview from './components/ThemePreview.vue'
@@ -68,12 +81,18 @@ const {
   variant,
   specVersion,
   customColors,
+  keyColorOverrides,
+  toneOverrides,
   displayedTones,
   currentTheme,
   fullTheme,
   toggleDarkMode,
   addCustomColor,
-  removeCustomColor
+  removeCustomColor,
+  setKeyColorOverride,
+  addToneOverride,
+  removeToneOverride,
+  updateToneOverride
 } = useTheme()
 
 // 合并自定义颜色配置和生成的颜色角色
