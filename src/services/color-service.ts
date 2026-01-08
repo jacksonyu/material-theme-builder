@@ -4,11 +4,9 @@
 import {
   argbFromHex,
   hexFromArgb,
-  themeFromSourceColor,
   TonalPalette,
   Hct,
   Blend,
-  MaterialDynamicColors,
   SchemeContent,
   SchemeTonalSpot,
   SchemeExpressive,
@@ -281,76 +279,21 @@ function getVariantEnum(variant: SchemeVariantType): Variant {
 
 function extractColorRoles(scheme: DynamicScheme): Record<string, string> {
   const roles: Record<string, string> = {}
-  
-  // Primary 系列
-  roles.primary = hexFromArgb(MaterialDynamicColors.primary.getArgb(scheme))
-  roles.onPrimary = hexFromArgb(MaterialDynamicColors.onPrimary.getArgb(scheme))
-  roles.primaryContainer = hexFromArgb(MaterialDynamicColors.primaryContainer.getArgb(scheme))
-  roles.onPrimaryContainer = hexFromArgb(MaterialDynamicColors.onPrimaryContainer.getArgb(scheme))
-  roles.primaryFixed = hexFromArgb(MaterialDynamicColors.primaryFixed.getArgb(scheme))
-  roles.primaryFixedDim = hexFromArgb(MaterialDynamicColors.primaryFixedDim.getArgb(scheme))
-  roles.onPrimaryFixed = hexFromArgb(MaterialDynamicColors.onPrimaryFixed.getArgb(scheme))
-  roles.onPrimaryFixedVariant = hexFromArgb(MaterialDynamicColors.onPrimaryFixedVariant.getArgb(scheme))
-  
-  // Secondary 系列
-  roles.secondary = hexFromArgb(MaterialDynamicColors.secondary.getArgb(scheme))
-  roles.onSecondary = hexFromArgb(MaterialDynamicColors.onSecondary.getArgb(scheme))
-  roles.secondaryContainer = hexFromArgb(MaterialDynamicColors.secondaryContainer.getArgb(scheme))
-  roles.onSecondaryContainer = hexFromArgb(MaterialDynamicColors.onSecondaryContainer.getArgb(scheme))
-  roles.secondaryFixed = hexFromArgb(MaterialDynamicColors.secondaryFixed.getArgb(scheme))
-  roles.secondaryFixedDim = hexFromArgb(MaterialDynamicColors.secondaryFixedDim.getArgb(scheme))
-  roles.onSecondaryFixed = hexFromArgb(MaterialDynamicColors.onSecondaryFixed.getArgb(scheme))
-  roles.onSecondaryFixedVariant = hexFromArgb(MaterialDynamicColors.onSecondaryFixedVariant.getArgb(scheme))
-  
-  // Tertiary 系列
-  roles.tertiary = hexFromArgb(MaterialDynamicColors.tertiary.getArgb(scheme))
-  roles.onTertiary = hexFromArgb(MaterialDynamicColors.onTertiary.getArgb(scheme))
-  roles.tertiaryContainer = hexFromArgb(MaterialDynamicColors.tertiaryContainer.getArgb(scheme))
-  roles.onTertiaryContainer = hexFromArgb(MaterialDynamicColors.onTertiaryContainer.getArgb(scheme))
-  roles.tertiaryFixed = hexFromArgb(MaterialDynamicColors.tertiaryFixed.getArgb(scheme))
-  roles.tertiaryFixedDim = hexFromArgb(MaterialDynamicColors.tertiaryFixedDim.getArgb(scheme))
-  roles.onTertiaryFixed = hexFromArgb(MaterialDynamicColors.onTertiaryFixed.getArgb(scheme))
-  roles.onTertiaryFixedVariant = hexFromArgb(MaterialDynamicColors.onTertiaryFixedVariant.getArgb(scheme))
-  
-  // Error 系列
-  roles.error = hexFromArgb(MaterialDynamicColors.error.getArgb(scheme))
-  roles.onError = hexFromArgb(MaterialDynamicColors.onError.getArgb(scheme))
-  roles.errorContainer = hexFromArgb(MaterialDynamicColors.errorContainer.getArgb(scheme))
-  roles.onErrorContainer = hexFromArgb(MaterialDynamicColors.onErrorContainer.getArgb(scheme))
-  
-  // Surface 系列
-  roles.surface = hexFromArgb(MaterialDynamicColors.surface.getArgb(scheme))
-  roles.onSurface = hexFromArgb(MaterialDynamicColors.onSurface.getArgb(scheme))
-  roles.surfaceVariant = hexFromArgb(MaterialDynamicColors.surfaceVariant.getArgb(scheme))
-  roles.onSurfaceVariant = hexFromArgb(MaterialDynamicColors.onSurfaceVariant.getArgb(scheme))
-  roles.surfaceDim = hexFromArgb(MaterialDynamicColors.surfaceDim.getArgb(scheme))
-  roles.surfaceBright = hexFromArgb(MaterialDynamicColors.surfaceBright.getArgb(scheme))
-  roles.surfaceContainerLowest = hexFromArgb(MaterialDynamicColors.surfaceContainerLowest.getArgb(scheme))
-  roles.surfaceContainerLow = hexFromArgb(MaterialDynamicColors.surfaceContainerLow.getArgb(scheme))
-  roles.surfaceContainer = hexFromArgb(MaterialDynamicColors.surfaceContainer.getArgb(scheme))
-  roles.surfaceContainerHigh = hexFromArgb(MaterialDynamicColors.surfaceContainerHigh.getArgb(scheme))
-  roles.surfaceContainerHighest = hexFromArgb(MaterialDynamicColors.surfaceContainerHighest.getArgb(scheme))
-  
-  // Outline 系列
-  roles.outline = hexFromArgb(MaterialDynamicColors.outline.getArgb(scheme))
-  roles.outlineVariant = hexFromArgb(MaterialDynamicColors.outlineVariant.getArgb(scheme))
-  
-  // 其他
-  roles.inverseSurface = hexFromArgb(MaterialDynamicColors.inverseSurface.getArgb(scheme))
-  roles.inverseOnSurface = hexFromArgb(MaterialDynamicColors.inverseOnSurface.getArgb(scheme))
-  roles.inversePrimary = hexFromArgb(MaterialDynamicColors.inversePrimary.getArgb(scheme))
-  roles.shadow = hexFromArgb(MaterialDynamicColors.shadow.getArgb(scheme))
-  roles.scrim = hexFromArgb(MaterialDynamicColors.scrim.getArgb(scheme))
-  roles.background = hexFromArgb(MaterialDynamicColors.background.getArgb(scheme))
-  roles.onBackground = hexFromArgb(MaterialDynamicColors.onBackground.getArgb(scheme))
-  
+  // DynamicScheme 实例直接暴露 scheme[role] 属性返回 ARGB 值
+  const schemeAny = scheme as unknown as Record<string, number>
+  for (const role of ALL_COLOR_ROLES) {
+    const argbValue = schemeAny[role]
+    if (typeof argbValue === 'number') {
+      roles[role] = hexFromArgb(argbValue)
+    }
+  }
   return roles
 }
 
-function extractPalettes(theme: any): Record<string, Record<number, string>> {
+function extractPalettes(scheme: DynamicScheme): Record<string, Record<number, string>> {
   const tones = [0, 4, 6, 10, 12, 17, 20, 22, 24, 30, 40, 50, 60, 70, 80, 87, 90, 92, 94, 95, 96, 98, 99, 100]
   
-  const extractTones = (palette: any): Record<number, string> => {
+  const extractTones = (palette: TonalPalette): Record<number, string> => {
     const result: Record<number, string> = {}
     for (const tone of tones) {
       result[tone] = hexFromArgb(palette.tone(tone))
@@ -359,12 +302,12 @@ function extractPalettes(theme: any): Record<string, Record<number, string>> {
   }
   
   return {
-    primary: extractTones(theme.palettes.primary),
-    secondary: extractTones(theme.palettes.secondary),
-    tertiary: extractTones(theme.palettes.tertiary),
-    neutral: extractTones(theme.palettes.neutral),
-    neutralVariant: extractTones(theme.palettes.neutralVariant),
-    error: extractTones(theme.palettes.error)
+    primary: extractTones(scheme.primaryPalette),
+    secondary: extractTones(scheme.secondaryPalette),
+    tertiary: extractTones(scheme.tertiaryPalette),
+    neutral: extractTones(scheme.neutralPalette),
+    neutralVariant: extractTones(scheme.neutralVariantPalette),
+    error: extractTones(scheme.errorPalette)
   }
 }
 
@@ -388,21 +331,37 @@ function tonalPaletteToRecord(palette: TonalPalette): Record<number, string> {
   return result
 }
 
-function extractCustomColors(theme: any, isDark: boolean): CustomColorRole[] {
-  if (!theme.customColors || theme.customColors.length === 0) {
-    return []
-  }
-  
-  return theme.customColors.map((customColor: any) => {
-    const scheme = isDark ? customColor.dark : customColor.light
+/**
+ * 生成自定义颜色的 UI 角色
+ * 遵循 MCU 笔记中的协调 -> 建系 -> 映射流程
+ */
+function generateCustomColorRoles(
+  customColors: CustomColor[],
+  sourceColorArgb: number,
+  isDark: boolean,
+  isMonochrome: boolean
+): CustomColorRole[] {
+  return customColors.map(customColor => {
+    const customArgb = argbFromHex(customColor.value)
+    
+    // 步骤 1: 协调（可选）
+    const harmonizedArgb = customColor.harmonize
+      ? Blend.harmonize(customArgb, sourceColorArgb)
+      : customArgb
+    const harmonizedHct = Hct.fromInt(harmonizedArgb)
+    
+    // 步骤 2: 生成高保真色板
+    const palette = TonalPalette.fromHueAndChroma(harmonizedHct.hue, harmonizedHct.chroma)
+    
+    // 步骤 3: 映射 UI 角色
     return {
-      name: customColor.color.name,
-      value: hexFromArgb(customColor.color.value),
+      name: customColor.name,
+      value: customColor.value,
       roles: {
-        color: hexFromArgb(scheme.color),
-        onColor: hexFromArgb(scheme.onColor),
-        colorContainer: hexFromArgb(scheme.colorContainer),
-        onColorContainer: hexFromArgb(scheme.onColorContainer)
+        color: hexFromArgb(palette.tone(isDark ? 80 : 40)),
+        onColor: hexFromArgb(palette.tone(isDark ? 20 : 100)),
+        colorContainer: hexFromArgb(palette.tone(isDark ? 30 : 90)),
+        onColorContainer: hexFromArgb(palette.tone(isDark ? 90 : (isMonochrome ? 10 : 30)))
       }
     }
   })
@@ -541,19 +500,13 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
   
   const sourceColorArgb = argbFromHex(sourceColorHex)
   const sourceColorHct = Hct.fromInt(sourceColorArgb)
-  
-  // 使用 themeFromSourceColor 处理自定义颜色（包含 harmonization）
-  const theme = themeFromSourceColor(sourceColorArgb, customColors.map(c => ({
-    name: c.name,
-    value: argbFromHex(c.value),
-    blend: c.harmonize ?? true
-  })))
+  const isMonochrome = variant === SchemeVariant.MONOCHROME
   
   // 创建基础 scheme
   const baseScheme = createScheme(sourceColorHct, isDark, contrastLevel, variant, specVersion)
   
-  // 提取基础色板（from themeFromSourceColor）
-  let palettes = extractPalettes(theme)
+  // 从 DynamicScheme 提取基础色板
+  let palettes = extractPalettes(baseScheme)
   
   // 如果有关键色覆盖，应用高保真策略生成新色板
   if (keyColorOverrides) {
@@ -632,8 +585,8 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
   }
   
   // 应用 Tone 改写
-  // 注意：需要先提取 customColorRoles 以支持拓展颜色的 tone 改写
-  let customColorRoles = extractCustomColors(theme, isDark)
+  // 注意：需要先生成 customColorRoles 以支持拓展颜色的 tone 改写
+  let customColorRoles = generateCustomColorRoles(customColors, sourceColorArgb, isDark, isMonochrome)
   colorRoles = applyToneOverrides(colorRoles, palettes, toneOverrides, isDark, customColorRoles)
   
   // 应用拓展颜色的 Tone 改写
@@ -781,11 +734,8 @@ function generateSchemeForContrast(
 /**
  * 提取官方格式调色板（使用官方 tone 列表）
  */
-function extractOfficialPalettes(sourceColorHex: string): Record<string, Record<number, string>> {
-  const sourceColorArgb = argbFromHex(sourceColorHex)
-  const theme = themeFromSourceColor(sourceColorArgb, [])
-  
-  const extractTones = (palette: any): Record<number, string> => {
+function extractOfficialPalettes(scheme: DynamicScheme): Record<string, Record<number, string>> {
+  const extractTones = (palette: TonalPalette): Record<number, string> => {
     const result: Record<number, string> = {}
     for (const tone of OFFICIAL_TONES) {
       result[tone] = hexFromArgb(palette.tone(tone))
@@ -794,11 +744,11 @@ function extractOfficialPalettes(sourceColorHex: string): Record<string, Record<
   }
   
   return {
-    primary: extractTones(theme.palettes.primary),
-    secondary: extractTones(theme.palettes.secondary),
-    tertiary: extractTones(theme.palettes.tertiary),
-    neutral: extractTones(theme.palettes.neutral),
-    'neutral-variant': extractTones(theme.palettes.neutralVariant)
+    primary: extractTones(scheme.primaryPalette),
+    secondary: extractTones(scheme.secondaryPalette),
+    tertiary: extractTones(scheme.tertiaryPalette),
+    neutral: extractTones(scheme.neutralPalette),
+    'neutral-variant': extractTones(scheme.neutralVariantPalette)
   }
 }
 
@@ -806,7 +756,12 @@ function extractOfficialPalettes(sourceColorHex: string): Record<string, Record<
  * 将主题导出为官方 Material Theme Builder JSON 格式
  */
 export function exportThemeToOfficialJson(options: OfficialExportOptions): string {
-  const { sourceColor, customColors = [] } = options
+  const { sourceColor, customColors = [], variant = SchemeVariant.TONAL_SPOT, specVersion = SpecVersion.SPEC_2025 } = options
+  
+  // 创建基础 scheme 用于提取调色板
+  const sourceColorArgb = argbFromHex(sourceColor)
+  const sourceColorHct = Hct.fromInt(sourceColorArgb)
+  const baseScheme = createScheme(sourceColorHct, false, 0, variant, specVersion)
   
   // 获取当前时间戳
   const now = new Date()
@@ -841,7 +796,7 @@ export function exportThemeToOfficialJson(options: OfficialExportOptions): strin
   }
   
   // 生成官方格式调色板
-  output.palettes = extractOfficialPalettes(sourceColor)
+  output.palettes = extractOfficialPalettes(baseScheme)
   
   return JSON.stringify(output, null, 4)
 }
