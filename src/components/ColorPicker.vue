@@ -29,16 +29,34 @@
       </button>
     </div>
     
-    <div class="preset-colors">
-      <button
-        v-for="color in presetColors"
-        :key="color.value"
-        :style="{ backgroundColor: color.value }"
-        :title="color.name"
-        :class="{ active: modelValue === color.value }"
-        @click="selectPreset(color.value)"
-        class="preset-btn"
-      />
+    <div class="preset-group">
+      <div class="group-title">经典系列</div>
+      <div class="preset-colors">
+        <button
+          v-for="color in classicColors"
+          :key="color.value"
+          :style="{ backgroundColor: color.value }"
+          :title="color.name"
+          :class="{ active: modelValue === color.value }"
+          @click="selectPreset(color.value)"
+          class="preset-btn"
+        />
+      </div>
+    </div>
+    
+    <div class="preset-group">
+      <div class="group-title">活力系列</div>
+      <div class="preset-colors">
+        <button
+          v-for="color in vibrantColors"
+          :key="color.value"
+          :style="{ backgroundColor: color.value }"
+          :title="color.name"
+          :class="{ active: modelValue === color.value }"
+          @click="selectPreset(color.value)"
+          class="preset-btn"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -56,7 +74,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const presetColors = [
+const classicColors = [
   { name: 'Material Purple', value: '#6750A4' },
   { name: 'Blue', value: '#0061A4' },
   { name: 'Teal', value: '#006A6A' },
@@ -69,6 +87,21 @@ const presetColors = [
   { name: 'Indigo', value: '#4355B9' },
   { name: 'Cyan', value: '#006874' },
   { name: 'Brown', value: '#6D5E4B' }
+]
+
+const vibrantColors = [
+  { name: 'Neon Pink', value: '#F72585' },
+  { name: 'Aurora Purple', value: '#7209B7' },
+  { name: 'Electric Blue', value: '#3F37C9' },
+  { name: 'Electric Cyan', value: '#4CC9F0' },
+  { name: 'Tiffany Teal', value: '#00F5D4' },
+  { name: 'Mint Green', value: '#06D6A0' },
+  { name: 'Avocado Green', value: '#95D5B2' },
+  { name: 'Bright Lime', value: '#AACC00' },
+  { name: 'Sunny Yellow', value: '#FFD166' },
+  { name: 'Vibrant Orange', value: '#FF9F1C' },
+  { name: 'Coral Pink', value: '#FF70A6' },
+  { name: 'Rose Red', value: '#FF5A5F' }
 ]
 
 function handleColorInput(e) {
@@ -165,6 +198,24 @@ function randomizeColor() {
 .hex-input:focus {
   outline: none;
   border-color: var(--primary);
+}
+
+.preset-group {
+  margin-bottom: 16px;
+}
+
+.preset-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
 }
 
 .preset-colors {

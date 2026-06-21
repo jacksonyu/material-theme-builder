@@ -14,8 +14,11 @@
       </button>
     </div>
     
-    <p v-if="modelValue === 'spec2025' && showLowContrastWarning" class="warning-text">
-      ⚠️ Spec 2025 不支持低对比度（&lt; 0），将自动调整为标准对比度
+    <p v-if="(modelValue === 'spec2025' || modelValue === 'spec2026') && showLowContrastWarning" class="warning-text">
+      ⚠️ Spec 2025/2026 不支持低对比度（&lt; 0），将自动调整为标准对比度
+    </p>
+    <p v-if="showFallbackWarning" class="warning-text fallback-warning">
+      ⚠️ 当前变体在 Spec 2025/2026 下无独立规范，底层将自动回退到 Spec 2021
     </p>
   </div>
 </template>
@@ -32,6 +35,10 @@ const props = defineProps({
   contrastLevel: {
     type: Number,
     default: 0
+  },
+  variant: {
+    type: String,
+    default: 'tonalSpot'
   }
 })
 
@@ -41,6 +48,11 @@ const versionInfo = SPEC_VERSION_INFO
 
 const showLowContrastWarning = computed(() => {
   return props.contrastLevel < 0
+})
+
+const showFallbackWarning = computed(() => {
+  const fallbackVariants = ['content', 'fidelity', 'monochrome', 'fruitSalad', 'rainbow']
+  return (props.modelValue === 'spec2025' || props.modelValue === 'spec2026') && fallbackVariants.includes(props.variant)
 })
 
 function selectVersion(key) {
@@ -122,5 +134,11 @@ function selectVersion(key) {
   background: var(--error-container);
   border-radius: 8px;
   line-height: 1.4;
+}
+
+.fallback-warning {
+  color: #664d03;
+  background-color: #fff3cd;
+  border: 1px solid #ffe69c;
 }
 </style>

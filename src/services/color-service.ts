@@ -17,6 +17,8 @@ import {
   SchemeRainbow,
   DynamicScheme,
   Variant,
+  type Platform,
+  SchemeCmf,
 } from '@ktibow/material-color-utilities-nightly'
 
 // =====================
@@ -25,7 +27,8 @@ import {
 
 export const SpecVersion = {
   SPEC_2021: 'spec2021',
-  SPEC_2025: 'spec2025'
+  SPEC_2025: 'spec2025',
+  SPEC_2026: 'spec2026'
 } as const
 
 export type SpecVersionType = typeof SpecVersion[keyof typeof SpecVersion]
@@ -37,7 +40,11 @@ export const SPEC_VERSION_INFO: Record<SpecVersionType, { name: string; descript
   },
   [SpecVersion.SPEC_2025]: {
     name: 'Spec 2025',
-    description: '最新规范，不支持低对比度'
+    description: '2025 规范，不支持低对比度'
+  },
+  [SpecVersion.SPEC_2026]: {
+    name: 'Spec 2026',
+    description: '最新 2026 规范，不支持低对比度'
   }
 }
 
@@ -49,7 +56,8 @@ export const SchemeVariant = {
   MONOCHROME: 'monochrome',
   NEUTRAL: 'neutral',
   FRUIT_SALAD: 'fruitSalad',
-  RAINBOW: 'rainbow'
+  RAINBOW: 'rainbow',
+  CMF: 'cmf'
 } as const
 
 export type SchemeVariantType = typeof SchemeVariant[keyof typeof SchemeVariant]
@@ -86,6 +94,10 @@ export const SCHEME_VARIANT_INFO: Record<SchemeVariantType, { name: string; desc
   [SchemeVariant.RAINBOW]: {
     name: 'Rainbow',
     description: '彩虹色调，适合多样化的视觉效果'
+  },
+  [SchemeVariant.CMF]: {
+    name: 'CMF',
+    description: 'CMF 配色方案，适用于硬件产品与工业设计'
   }
 }
 
@@ -141,16 +153,16 @@ export interface ToneOverrides {
  */
 export const ALL_COLOR_ROLES = [
   // Primary 系列
-  'primary', 'onPrimary', 'primaryContainer', 'onPrimaryContainer',
+  'primary', 'primaryDim', 'onPrimary', 'primaryContainer', 'onPrimaryContainer',
   'primaryFixed', 'primaryFixedDim', 'onPrimaryFixed', 'onPrimaryFixedVariant',
   // Secondary 系列
-  'secondary', 'onSecondary', 'secondaryContainer', 'onSecondaryContainer',
+  'secondary', 'secondaryDim', 'onSecondary', 'secondaryContainer', 'onSecondaryContainer',
   'secondaryFixed', 'secondaryFixedDim', 'onSecondaryFixed', 'onSecondaryFixedVariant',
   // Tertiary 系列
-  'tertiary', 'onTertiary', 'tertiaryContainer', 'onTertiaryContainer',
+  'tertiary', 'tertiaryDim', 'onTertiary', 'tertiaryContainer', 'onTertiaryContainer',
   'tertiaryFixed', 'tertiaryFixedDim', 'onTertiaryFixed', 'onTertiaryFixedVariant',
   // Error 系列
-  'error', 'onError', 'errorContainer', 'onErrorContainer',
+  'error', 'errorDim', 'onError', 'errorContainer', 'onErrorContainer',
   // Surface 系列
   'surface', 'onSurface', 'surfaceVariant', 'onSurfaceVariant',
   'surfaceDim', 'surfaceBright',
@@ -171,17 +183,17 @@ export type ColorRoleName = typeof ALL_COLOR_ROLES[number]
  */
 export const ROLE_TO_PALETTE: Record<string, 'primary' | 'secondary' | 'tertiary' | 'neutral' | 'neutralVariant' | 'error'> = {
   // Primary
-  primary: 'primary', onPrimary: 'primary', primaryContainer: 'primary', onPrimaryContainer: 'primary',
+  primary: 'primary', primaryDim: 'primary', onPrimary: 'primary', primaryContainer: 'primary', onPrimaryContainer: 'primary',
   primaryFixed: 'primary', primaryFixedDim: 'primary', onPrimaryFixed: 'primary', onPrimaryFixedVariant: 'primary',
   inversePrimary: 'primary',
   // Secondary
-  secondary: 'secondary', onSecondary: 'secondary', secondaryContainer: 'secondary', onSecondaryContainer: 'secondary',
+  secondary: 'secondary', secondaryDim: 'secondary', onSecondary: 'secondary', secondaryContainer: 'secondary', onSecondaryContainer: 'secondary',
   secondaryFixed: 'secondary', secondaryFixedDim: 'secondary', onSecondaryFixed: 'secondary', onSecondaryFixedVariant: 'secondary',
   // Tertiary
-  tertiary: 'tertiary', onTertiary: 'tertiary', tertiaryContainer: 'tertiary', onTertiaryContainer: 'tertiary',
+  tertiary: 'tertiary', tertiaryDim: 'tertiary', onTertiary: 'tertiary', tertiaryContainer: 'tertiary', onTertiaryContainer: 'tertiary',
   tertiaryFixed: 'tertiary', tertiaryFixedDim: 'tertiary', onTertiaryFixed: 'tertiary', onTertiaryFixedVariant: 'tertiary',
   // Error
-  error: 'error', onError: 'error', errorContainer: 'error', onErrorContainer: 'error',
+  error: 'error', errorDim: 'error', onError: 'error', errorContainer: 'error', onErrorContainer: 'error',
   // Neutral
   surface: 'neutral', onSurface: 'neutral', surfaceDim: 'neutral', surfaceBright: 'neutral',
   surfaceContainerLowest: 'neutral', surfaceContainerLow: 'neutral', surfaceContainer: 'neutral',
@@ -199,6 +211,7 @@ export interface GenerateThemeOptions {
   isDark?: boolean
   variant?: SchemeVariantType
   specVersion?: SpecVersionType
+  platform?: Platform
   customColors?: CustomColor[]
   keyColorOverrides?: KeyColorOverrides
   toneOverrides?: ToneOverrides
@@ -208,6 +221,7 @@ export interface Theme {
   source: string
   isDark: boolean
   contrastLevel: number
+  platform: Platform
   colorRoles: Record<string, string>
   palettes: Record<string, Record<number, string>>
   customColors: CustomColorRole[]
@@ -222,32 +236,41 @@ function createScheme(
   isDark: boolean,
   contrastLevel: number,
   variant: SchemeVariantType,
-  specVersion: SpecVersionType
+  specVersion: SpecVersionType,
+  platform: Platform = 'phone'
 ): DynamicScheme {
-  const specVersionStr = specVersion === SpecVersion.SPEC_2021 ? '2021' : '2025'
-  const adjustedContrastLevel = specVersion === SpecVersion.SPEC_2025 && contrastLevel < 0 
+  let specVersionStr: '2021' | '2025' | '2026' = '2025'
+  if (specVersion === SpecVersion.SPEC_2021) {
+    specVersionStr = '2021'
+  } else if (specVersion === SpecVersion.SPEC_2026) {
+    specVersionStr = '2026'
+  }
+  
+  const adjustedContrastLevel = (specVersion === SpecVersion.SPEC_2025 || specVersion === SpecVersion.SPEC_2026) && contrastLevel < 0 
     ? 0 
     : contrastLevel
 
   switch (variant) {
     case SchemeVariant.TONAL_SPOT:
-      return new SchemeTonalSpot(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeTonalSpot(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.CONTENT:
-      return new SchemeContent(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeContent(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.EXPRESSIVE:
-      return new SchemeExpressive(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeExpressive(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.FIDELITY:
-      return new SchemeFidelity(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeFidelity(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.MONOCHROME:
-      return new SchemeMonochrome(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeMonochrome(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.NEUTRAL:
-      return new SchemeNeutral(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeNeutral(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.FRUIT_SALAD:
-      return new SchemeFruitSalad(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeFruitSalad(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     case SchemeVariant.RAINBOW:
-      return new SchemeRainbow(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeRainbow(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
+    case SchemeVariant.CMF:
+      return new SchemeCmf(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
     default:
-      return new SchemeTonalSpot(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr)
+      return new SchemeTonalSpot(sourceColorHct, isDark, adjustedContrastLevel, specVersionStr, platform)
   }
 }
 
@@ -272,6 +295,8 @@ function getVariantEnum(variant: SchemeVariantType): Variant {
       return Variant.FRUIT_SALAD
     case SchemeVariant.RAINBOW:
       return Variant.RAINBOW
+    case SchemeVariant.CMF:
+      return Variant.CMF
     default:
       return Variant.TONAL_SPOT
   }
@@ -377,7 +402,7 @@ function generateCustomColorRoles(
  */
 function applyToneOverrides(
   colorRoles: Record<string, string>,
-  palettes: Record<string, Record<number, string>>,
+  scheme: DynamicScheme,
   toneOverrides: ToneOverrides | undefined,
   isDark: boolean,
   customColorRoles?: CustomColorRole[]
@@ -393,15 +418,30 @@ function applyToneOverrides(
     const { role, tone } = override
     const paletteKey = ROLE_TO_PALETTE[role]
     
-    if (paletteKey && palettes[paletteKey]) {
-      // 标准 role：从对应调色板中取指定 tone 的颜色
-      const palette = palettes[paletteKey]
-      if (palette[tone] !== undefined) {
-        result[role] = palette[tone]
-      } else {
-        // 如果调色板中没有该 tone，需要从 TonalPalette 重新计算
-        const hct = Hct.fromInt(argbFromHex(palette[50]))
-        const tonalPalette = TonalPalette.fromHueAndChroma(hct.hue, hct.chroma)
+    if (paletteKey) {
+      let tonalPalette: TonalPalette | undefined
+      switch (paletteKey) {
+        case 'primary':
+          tonalPalette = scheme.primaryPalette
+          break
+        case 'secondary':
+          tonalPalette = scheme.secondaryPalette
+          break
+        case 'tertiary':
+          tonalPalette = scheme.tertiaryPalette
+          break
+        case 'neutral':
+          tonalPalette = scheme.neutralPalette
+          break
+        case 'neutralVariant':
+          tonalPalette = scheme.neutralVariantPalette
+          break
+        case 'error':
+          tonalPalette = scheme.errorPalette
+          break
+      }
+      
+      if (tonalPalette) {
         result[role] = hexFromArgb(tonalPalette.tone(tone))
       }
     } else if (customColorRoles && customColorRoles.length > 0) {
@@ -493,6 +533,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
     isDark = false, 
     variant = SchemeVariant.TONAL_SPOT,
     specVersion = SpecVersion.SPEC_2025,
+    platform = 'phone',
     customColors = [],
     keyColorOverrides,
     toneOverrides
@@ -503,7 +544,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
   const isMonochrome = variant === SchemeVariant.MONOCHROME
   
   // 创建基础 scheme
-  const baseScheme = createScheme(sourceColorHct, isDark, contrastLevel, variant, specVersion)
+  const baseScheme = createScheme(sourceColorHct, isDark, contrastLevel, variant, specVersion, platform)
   
   // 从 DynamicScheme 提取基础色板
   let palettes = extractPalettes(baseScheme)
@@ -533,11 +574,18 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
   // 创建用于生成 colorRoles 的 scheme
   // 如果有关键色覆盖，需要创建一个注入了自定义 palette 的 DynamicScheme
   let colorRoles: Record<string, string>
+  let targetScheme = baseScheme
   
   if (keyColorOverrides && Object.keys(keyColorOverrides).length > 0) {
     // 使用自定义 palette 创建新的 DynamicScheme
-    const specVersionStr = specVersion === SpecVersion.SPEC_2021 ? '2021' : '2025'
-    const adjustedContrastLevel = specVersion === SpecVersion.SPEC_2025 && contrastLevel < 0 
+    let specVersionStr: '2021' | '2025' | '2026' = '2025'
+    if (specVersion === SpecVersion.SPEC_2021) {
+      specVersionStr = '2021'
+    } else if (specVersion === SpecVersion.SPEC_2026) {
+      specVersionStr = '2026'
+    }
+    
+    const adjustedContrastLevel = (specVersion === SpecVersion.SPEC_2025 || specVersion === SpecVersion.SPEC_2026) && contrastLevel < 0 
       ? 0 
       : contrastLevel
     
@@ -569,6 +617,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
       variant: getVariantEnum(variant),
       isDark,
       contrastLevel: adjustedContrastLevel,
+      platform,
       primaryPalette,
       secondaryPalette,
       tertiaryPalette,
@@ -578,6 +627,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
       specVersion: specVersionStr
     })
     
+    targetScheme = customScheme
     colorRoles = extractColorRoles(customScheme)
   } else {
     // 无覆盖，直接使用基础 scheme
@@ -587,7 +637,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
   // 应用 Tone 改写
   // 注意：需要先生成 customColorRoles 以支持拓展颜色的 tone 改写
   let customColorRoles = generateCustomColorRoles(customColors, sourceColorArgb, isDark, isMonochrome)
-  colorRoles = applyToneOverrides(colorRoles, palettes, toneOverrides, isDark, customColorRoles)
+  colorRoles = applyToneOverrides(colorRoles, targetScheme, toneOverrides, isDark, customColorRoles)
   
   // 应用拓展颜色的 Tone 改写
   customColorRoles = applyCustomColorToneOverrides(customColorRoles, toneOverrides, isDark)
@@ -596,6 +646,7 @@ export function generateThemeFromColor(sourceColorHex: string, options: Generate
     source: sourceColorHex,
     isDark,
     contrastLevel,
+    platform,
     colorRoles,
     palettes,
     customColors: customColorRoles
@@ -700,13 +751,14 @@ export interface OfficialExportOptions {
   sourceColor: string
   variant?: SchemeVariantType
   specVersion?: SpecVersionType
+  platform?: Platform
   customColors?: CustomColor[]
   keyColorOverrides?: KeyColorOverrides
   toneOverrides?: ToneOverrides
 }
 
 /**
- * 生成符合官方 Theme Builder 格式的 scheme
+ * 生成符合官方 Theme Builder 格式 the scheme
  */
 function generateSchemeForContrast(
   sourceColorHex: string,
@@ -719,6 +771,7 @@ function generateSchemeForContrast(
     isDark,
     variant: options.variant || SchemeVariant.TONAL_SPOT,
     specVersion: options.specVersion || SpecVersion.SPEC_2025,
+    platform: options.platform || 'phone',
     customColors: options.customColors || [],
     keyColorOverrides: options.keyColorOverrides,
     toneOverrides: options.toneOverrides
@@ -756,12 +809,64 @@ function extractOfficialPalettes(scheme: DynamicScheme): Record<string, Record<n
  * 将主题导出为官方 Material Theme Builder JSON 格式
  */
 export function exportThemeToOfficialJson(options: OfficialExportOptions): string {
-  const { sourceColor, customColors = [], variant = SchemeVariant.TONAL_SPOT, specVersion = SpecVersion.SPEC_2025 } = options
+  const { 
+    sourceColor, 
+    customColors = [], 
+    variant = SchemeVariant.TONAL_SPOT, 
+    specVersion = SpecVersion.SPEC_2025, 
+    platform = 'phone',
+    keyColorOverrides 
+  } = options
   
-  // 创建基础 scheme 用于提取调色板
   const sourceColorArgb = argbFromHex(sourceColor)
   const sourceColorHct = Hct.fromInt(sourceColorArgb)
-  const baseScheme = createScheme(sourceColorHct, false, 0, variant, specVersion)
+  
+  // 创建提取官方 palettes 的原始 scheme
+  let schemeToExtract = createScheme(sourceColorHct, false, 0, variant, specVersion, platform)
+  
+  // 如果有关键色覆盖，使用应用覆盖色后的自定义 DynamicScheme 实例来提取调色板
+  if (keyColorOverrides && Object.keys(keyColorOverrides).length > 0) {
+    let specVersionStr: '2021' | '2025' | '2026' = '2025'
+    if (specVersion === SpecVersion.SPEC_2021) {
+      specVersionStr = '2021'
+    } else if (specVersion === SpecVersion.SPEC_2026) {
+      specVersionStr = '2026'
+    }
+    
+    const primaryPalette = keyColorOverrides.primary 
+      ? createFidelityPalette(keyColorOverrides.primary)
+      : schemeToExtract.primaryPalette
+    const secondaryPalette = keyColorOverrides.secondary
+      ? createFidelityPalette(keyColorOverrides.secondary)
+      : schemeToExtract.secondaryPalette
+    const tertiaryPalette = keyColorOverrides.tertiary
+      ? createFidelityPalette(keyColorOverrides.tertiary)
+      : schemeToExtract.tertiaryPalette
+    const neutralPalette = keyColorOverrides.neutral
+      ? createFidelityPalette(keyColorOverrides.neutral)
+      : schemeToExtract.neutralPalette
+    const neutralVariantPalette = keyColorOverrides.neutralVariant
+      ? createFidelityPalette(keyColorOverrides.neutralVariant)
+      : schemeToExtract.neutralVariantPalette
+    const errorPalette = keyColorOverrides.error
+      ? createFidelityPalette(keyColorOverrides.error)
+      : schemeToExtract.errorPalette
+      
+    schemeToExtract = new DynamicScheme({
+      sourceColorHct,
+      variant: getVariantEnum(variant),
+      isDark: false,
+      contrastLevel: 0,
+      platform,
+      primaryPalette,
+      secondaryPalette,
+      tertiaryPalette,
+      neutralPalette,
+      neutralVariantPalette,
+      errorPalette,
+      specVersion: specVersionStr
+    })
+  }
   
   // 获取当前时间戳
   const now = new Date()
@@ -796,7 +901,7 @@ export function exportThemeToOfficialJson(options: OfficialExportOptions): strin
   }
   
   // 生成官方格式调色板
-  output.palettes = extractOfficialPalettes(baseScheme)
+  output.palettes = extractOfficialPalettes(schemeToExtract)
   
   return JSON.stringify(output, null, 4)
 }

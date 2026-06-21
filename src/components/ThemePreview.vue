@@ -9,84 +9,21 @@
     </div>
     
     <div class="color-groups">
-      <!-- Primary -->
-      <div class="color-group">
-        <h4 class="group-title">Primary</h4>
+      <!-- 标准颜色分组 -->
+      <div v-for="group in colorGroups" :key="group.title" class="color-group">
+        <h4 class="group-title">{{ group.title }}</h4>
         <div class="role-grid">
-          <ColorRoleCard name="primary" :hex="roles.primary" :on-hex="roles.onPrimary" />
-          <ColorRoleCard name="onPrimary" :hex="roles.onPrimary" />
-          <ColorRoleCard name="primaryContainer" :hex="roles.primaryContainer" :on-hex="roles.onPrimaryContainer" />
-          <ColorRoleCard name="onPrimaryContainer" :hex="roles.onPrimaryContainer" />
+          <ColorRoleCard
+            v-for="roleItem in group.roles"
+            :key="roleItem.name"
+            :name="roleItem.name"
+            :hex="roles[roleItem.name]"
+            :on-hex="roleItem.onRole ? roles[roleItem.onRole] : undefined"
+          />
         </div>
       </div>
       
-      <!-- Secondary -->
-      <div class="color-group">
-        <h4 class="group-title">Secondary</h4>
-        <div class="role-grid">
-          <ColorRoleCard name="secondary" :hex="roles.secondary" :on-hex="roles.onSecondary" />
-          <ColorRoleCard name="onSecondary" :hex="roles.onSecondary" />
-          <ColorRoleCard name="secondaryContainer" :hex="roles.secondaryContainer" :on-hex="roles.onSecondaryContainer" />
-          <ColorRoleCard name="onSecondaryContainer" :hex="roles.onSecondaryContainer" />
-        </div>
-      </div>
-      
-      <!-- Tertiary -->
-      <div class="color-group">
-        <h4 class="group-title">Tertiary</h4>
-        <div class="role-grid">
-          <ColorRoleCard name="tertiary" :hex="roles.tertiary" :on-hex="roles.onTertiary" />
-          <ColorRoleCard name="onTertiary" :hex="roles.onTertiary" />
-          <ColorRoleCard name="tertiaryContainer" :hex="roles.tertiaryContainer" :on-hex="roles.onTertiaryContainer" />
-          <ColorRoleCard name="onTertiaryContainer" :hex="roles.onTertiaryContainer" />
-        </div>
-      </div>
-      
-      <!-- Error -->
-      <div class="color-group">
-        <h4 class="group-title">Error</h4>
-        <div class="role-grid">
-          <ColorRoleCard name="error" :hex="roles.error" :on-hex="roles.onError" />
-          <ColorRoleCard name="onError" :hex="roles.onError" />
-          <ColorRoleCard name="errorContainer" :hex="roles.errorContainer" :on-hex="roles.onErrorContainer" />
-          <ColorRoleCard name="onErrorContainer" :hex="roles.onErrorContainer" />
-        </div>
-      </div>
-      
-      <!-- Surface -->
-      <div class="color-group">
-        <h4 class="group-title">Surface</h4>
-        <div class="role-grid surface-grid">
-          <ColorRoleCard name="surface" :hex="roles.surface" :on-hex="roles.onSurface" />
-          <ColorRoleCard name="onSurface" :hex="roles.onSurface" />
-          <ColorRoleCard name="surfaceVariant" :hex="roles.surfaceVariant" :on-hex="roles.onSurfaceVariant" />
-          <ColorRoleCard name="onSurfaceVariant" :hex="roles.onSurfaceVariant" />
-          <ColorRoleCard name="surfaceDim" :hex="roles.surfaceDim" />
-          <ColorRoleCard name="surfaceBright" :hex="roles.surfaceBright" />
-          <ColorRoleCard name="surfaceContainerLowest" :hex="roles.surfaceContainerLowest" />
-          <ColorRoleCard name="surfaceContainerLow" :hex="roles.surfaceContainerLow" />
-          <ColorRoleCard name="surfaceContainer" :hex="roles.surfaceContainer" />
-          <ColorRoleCard name="surfaceContainerHigh" :hex="roles.surfaceContainerHigh" />
-          <ColorRoleCard name="surfaceContainerHighest" :hex="roles.surfaceContainerHighest" />
-        </div>
-      </div>
-      
-      <!-- Outline & Others -->
-      <div class="color-group">
-        <h4 class="group-title">Outline & Others</h4>
-        <div class="role-grid">
-          <ColorRoleCard name="outline" :hex="roles.outline" />
-          <ColorRoleCard name="outlineVariant" :hex="roles.outlineVariant" />
-          <ColorRoleCard name="inverseSurface" :hex="roles.inverseSurface" />
-          <ColorRoleCard name="inverseOnSurface" :hex="roles.inverseOnSurface" />
-          <ColorRoleCard name="inversePrimary" :hex="roles.inversePrimary" />
-          <ColorRoleCard name="shadow" :hex="roles.shadow" />
-          <ColorRoleCard name="scrim" :hex="roles.scrim" />
-          <ColorRoleCard name="background" :hex="roles.background" />
-        </div>
-      </div>
-      
-      <!-- Custom Colors -->
+      <!-- 自定义颜色 -->
       <div v-if="customColors && customColors.length > 0" class="color-group">
         <h4 class="group-title">Custom Colors</h4>
         <div v-for="custom in customColors" :key="custom.name" class="custom-color-section">
@@ -122,6 +59,91 @@ defineProps({
 })
 
 defineEmits(['toggleMode'])
+
+const colorGroups = [
+  {
+    title: 'Primary',
+    roles: [
+      { name: 'primary', onRole: 'onPrimary' },
+      { name: 'primaryDim' },
+      { name: 'onPrimary' },
+      { name: 'primaryContainer', onRole: 'onPrimaryContainer' },
+      { name: 'onPrimaryContainer' },
+      { name: 'primaryFixed', onRole: 'onPrimaryFixed' },
+      { name: 'primaryFixedDim', onRole: 'onPrimaryFixedVariant' },
+      { name: 'onPrimaryFixed' },
+      { name: 'onPrimaryFixedVariant' }
+    ]
+  },
+  {
+    title: 'Secondary',
+    roles: [
+      { name: 'secondary', onRole: 'onSecondary' },
+      { name: 'secondaryDim' },
+      { name: 'onSecondary' },
+      { name: 'secondaryContainer', onRole: 'onSecondaryContainer' },
+      { name: 'onSecondaryContainer' },
+      { name: 'secondaryFixed', onRole: 'onSecondaryFixed' },
+      { name: 'secondaryFixedDim', onRole: 'onSecondaryFixedVariant' },
+      { name: 'onSecondaryFixed' },
+      { name: 'onSecondaryFixedVariant' }
+    ]
+  },
+  {
+    title: 'Tertiary',
+    roles: [
+      { name: 'tertiary', onRole: 'onTertiary' },
+      { name: 'tertiaryDim' },
+      { name: 'onTertiary' },
+      { name: 'tertiaryContainer', onRole: 'onTertiaryContainer' },
+      { name: 'onTertiaryContainer' },
+      { name: 'tertiaryFixed', onRole: 'onTertiaryFixed' },
+      { name: 'tertiaryFixedDim', onRole: 'onTertiaryFixedVariant' },
+      { name: 'onTertiaryFixed' },
+      { name: 'onTertiaryFixedVariant' }
+    ]
+  },
+  {
+    title: 'Error',
+    roles: [
+      { name: 'error', onRole: 'onError' },
+      { name: 'errorDim' },
+      { name: 'onError' },
+      { name: 'errorContainer', onRole: 'onErrorContainer' },
+      { name: 'onErrorContainer' }
+    ]
+  },
+  {
+    title: 'Surface',
+    roles: [
+      { name: 'surface', onRole: 'onSurface' },
+      { name: 'onSurface' },
+      { name: 'surfaceVariant', onRole: 'onSurfaceVariant' },
+      { name: 'onSurfaceVariant' },
+      { name: 'surfaceDim' },
+      { name: 'surfaceBright' },
+      { name: 'surfaceContainerLowest' },
+      { name: 'surfaceContainerLow' },
+      { name: 'surfaceContainer' },
+      { name: 'surfaceContainerHigh' },
+      { name: 'surfaceContainerHighest' }
+    ]
+  },
+  {
+    title: 'Outline & Others',
+    roles: [
+      { name: 'outline' },
+      { name: 'outlineVariant' },
+      { name: 'inverseSurface', onRole: 'inverseOnSurface' },
+      { name: 'inverseOnSurface' },
+      { name: 'inversePrimary' },
+      { name: 'shadow' },
+      { name: 'scrim' },
+      { name: 'background', onRole: 'onBackground' },
+      { name: 'onBackground' }
+    ]
+  }
+]
 </script>
 
 <style scoped>

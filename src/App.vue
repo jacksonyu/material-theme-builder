@@ -19,7 +19,8 @@
           @remove="removeCustomColor"
         />
         <ContrastSlider v-model="contrastLevel" />
-        <SpecVersionSelector v-model="specVersion" :contrast-level="contrastLevel" />
+        <SpecVersionSelector v-model="specVersion" :contrast-level="contrastLevel" :variant="variant" />
+        <PlatformSelector v-model="platform" />
         <VariantSelector v-model="variant" />
         <KeyColorEditor
           v-model="keyColorOverrides"
@@ -65,6 +66,7 @@ import { useTheme } from './composables/useTheme'
 import ColorPicker from './components/ColorPicker.vue'
 import ContrastSlider from './components/ContrastSlider.vue'
 import SpecVersionSelector from './components/SpecVersionSelector.vue'
+import PlatformSelector from './components/PlatformSelector.vue'
 import VariantSelector from './components/VariantSelector.vue'
 import KeyColorEditor from './components/KeyColorEditor.vue'
 import ToneOverridePanel from './components/ToneOverridePanel.vue'
@@ -80,6 +82,7 @@ const {
   isDark,
   variant,
   specVersion,
+  platform,
   customColors,
   keyColorOverrides,
   toneOverrides,
@@ -110,9 +113,36 @@ const customColorsWithRoles = computed(() => {
 // 动态更新 CSS 变量
 watch(currentTheme, (theme) => {
   const root = document.documentElement
+  
+  // 1. 标准 color roles
   for (const [key, value] of Object.entries(theme.colorRoles)) {
     const cssVarName = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`
     root.style.setProperty(cssVarName, value)
+  }
+  
+  // 2. 自定义颜色 roles
+  if (theme.customColors) {
+    for (const customColor of theme.customColors) {
+      const baseName = customColor.name.toLowerCase().replace(/\s+/g, '-')
+      if (customColor.roles) {
+        for (const [roleKey, colorVal] of Object.entries(customColor.roles)) {
+          let varName = ''
+          if (roleKey === 'color') {
+            varName = `--${baseName}`
+          } else if (roleKey === 'onColor') {
+            varName = `--on-${baseName}`
+          } else if (roleKey === 'colorContainer') {
+            varName = `--${baseName}-container`
+          } else if (roleKey === 'onColorContainer') {
+            varName = `--on-${baseName}-container`
+          }
+          
+          if (varName && colorVal) {
+            root.style.setProperty(varName, colorVal)
+          }
+        }
+      }
+    }
   }
 }, { immediate: true })
 </script>

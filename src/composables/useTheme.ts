@@ -18,7 +18,8 @@ import {
   type OfficialExportOptions,
   type KeyColorOverrides,
   type ToneOverrides,
-  type ToneOverride
+  type ToneOverride,
+  type Platform
 } from '../services/color-service'
 
 // 全局状态
@@ -27,6 +28,7 @@ const contrastLevel = ref<number>(0) // -1 到 1
 const isDark = ref<boolean>(false)
 const variant = ref<SchemeVariantType>(SchemeVariant.TONAL_SPOT) // Scheme 变体
 const specVersion = ref<SpecVersionType>(SpecVersion.SPEC_2025) // Spec 版本
+const platform = ref<Platform>('phone') // 平台：手机还是手表
 const customColors = ref<CustomColor[]>([])
 
 // 关键色覆盖状态
@@ -55,6 +57,7 @@ export function useTheme() {
       isDark: false,
       variant: variant.value,
       specVersion: specVersion.value,
+      platform: platform.value,
       customColors: customColors.value,
       keyColorOverrides: keyColorOverrides.value,
       toneOverrides: toneOverrides.value
@@ -68,6 +71,7 @@ export function useTheme() {
       isDark: true,
       variant: variant.value,
       specVersion: specVersion.value,
+      platform: platform.value,
       customColors: customColors.value,
       keyColorOverrides: keyColorOverrides.value,
       toneOverrides: toneOverrides.value
@@ -127,6 +131,11 @@ export function useTheme() {
   // 设置 Scheme 变体
   function setVariant(v: SchemeVariantType) {
     variant.value = v
+  }
+  
+  // 设置平台
+  function setPlatform(p: Platform) {
+    platform.value = p
   }
   
   // 设置关键色覆盖
@@ -212,6 +221,7 @@ export function useTheme() {
       sourceColor: sourceColor.value,
       variant: variant.value,
       specVersion: specVersion.value,
+      platform: platform.value,
       customColors: customColors.value,
       keyColorOverrides: keyColorOverrides.value,
       toneOverrides: toneOverrides.value
@@ -243,6 +253,7 @@ export function useTheme() {
     isDark,
     variant,
     specVersion,
+    platform,
     customColors,
     keyColorOverrides,
     toneOverrides,
@@ -261,6 +272,7 @@ export function useTheme() {
     setContrastLevel,
     toggleDarkMode,
     setVariant,
+    setPlatform,
     setKeyColorOverride,
     clearKeyColorOverrides,
     addToneOverride,
