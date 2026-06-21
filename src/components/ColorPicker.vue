@@ -18,6 +18,15 @@
         placeholder="#6750A4"
         maxlength="7"
       />
+      <button
+        @click="randomizeColor"
+        class="random-btn"
+        title="随机颜色"
+      >
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="random-icon">
+          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+        </svg>
+      </button>
     </div>
     
     <div class="preset-colors">
@@ -83,6 +92,15 @@ function validateHex(e) {
 function selectPreset(color) {
   emit('update:modelValue', color)
 }
+
+function randomizeColor() {
+  const letters = '0123456789ABCDEF'
+  let color = '#'
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)]
+  }
+  emit('update:modelValue', color)
+}
 </script>
 
 <style scoped>
@@ -111,6 +129,7 @@ function selectPreset(color) {
 .native-picker {
   width: 56px;
   height: 56px;
+  flex-shrink: 0;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -129,6 +148,7 @@ function selectPreset(color) {
 
 .hex-input {
   flex: 1;
+  min-width: 0;
   height: 56px;
   padding: 0 16px;
   font-size: 18px;
@@ -168,5 +188,35 @@ function selectPreset(color) {
 .preset-btn.active {
   border-color: var(--on-surface);
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary);
+}
+
+.random-btn {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-container-high);
+  border: 2px solid var(--outline-variant);
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+  transition: all 0.2s;
+}
+
+.random-btn:hover {
+  background: var(--surface-container-highest);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.random-btn:active {
+  transform: scale(0.95);
+}
+
+.random-icon {
+  width: 24px;
+  height: 24px;
 }
 </style>
