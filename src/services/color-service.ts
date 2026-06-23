@@ -755,6 +755,8 @@ export interface OfficialExportOptions {
   customColors?: CustomColor[]
   keyColorOverrides?: KeyColorOverrides
   toneOverrides?: ToneOverrides
+  contrastLevel?: number
+  isDark?: boolean
 }
 
 /**
@@ -815,7 +817,10 @@ export function exportThemeToOfficialJson(options: OfficialExportOptions): strin
     variant = SchemeVariant.TONAL_SPOT, 
     specVersion = SpecVersion.SPEC_2025, 
     platform = 'phone',
-    keyColorOverrides 
+    keyColorOverrides,
+    toneOverrides,
+    contrastLevel = 0,
+    isDark = false
   } = options
   
   const sourceColorArgb = argbFromHex(sourceColor)
@@ -877,6 +882,17 @@ export function exportThemeToOfficialJson(options: OfficialExportOptions): strin
     seed: sourceColor,
     coreColors: {
       primary: sourceColor
+    },
+    mtbConfig: {
+      sourceColor,
+      variant,
+      specVersion,
+      platform,
+      customColors,
+      keyColorOverrides,
+      toneOverrides,
+      contrastLevel,
+      isDark
     }
   }
   
@@ -914,4 +930,5 @@ export function isValidHex(hex: string): boolean {
 }
 
 export { hexFromArgb, argbFromHex }
+export type { Platform }
 

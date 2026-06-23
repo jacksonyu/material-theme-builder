@@ -29,6 +29,27 @@
     <div v-if="showCopied" class="copied-toast">
       已复制到剪贴板
     </div>
+
+    <!-- 分割线 & 导入部分 -->
+    <div class="divider"></div>
+    
+    <div class="import-section">
+      <h3 class="section-title">Import Theme</h3>
+      <p class="format-note">选择导出的 JSON 文件恢复编辑状态</p>
+      
+      <div class="import-actions">
+        <label class="action-btn import-btn">
+          <span class="btn-icon">📥</span>
+          <span>导入 JSON 文件</span>
+          <input type="file" accept=".json" class="file-input" @change="handleImportFile" />
+        </label>
+      </div>
+      
+      <!-- 导入消息提示 -->
+      <div v-if="importMessage" class="import-message" :class="importMessageType">
+        {{ importMessage }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -45,9 +66,42 @@ const props = defineProps({
 
 const emit = defineEmits(['copy', 'download'])
 
-const { exportThemeOfficial } = useTheme()
+const { exportThemeOfficial, importTheme } = useTheme()
 
 const showCopied = ref(false)
+const importMessage = ref('')
+const importMessageType = ref('')
+
+function handleImportFile(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const content = e.target?.result
+    if (typeof content !== 'string') return
+    
+    const res = importTheme(content)
+    if (res.success) {
+      importMessage.value = '主题导入成功！'
+      importMessageType.value = 'success'
+      setTimeout(() => {
+        importMessage.value = ''
+      }, 3000)
+    } else {
+      importMessage.value = `导入失败: ${res.error}`
+      importMessageType.value = 'error'
+    }
+  }
+  reader.onerror = () => {
+    importMessage.value = '读取文件失败'
+    importMessageType.value = 'error'
+  }
+  reader.readAsText(file)
+  
+  // 重置 value 使得相同文件可以再次触发
+  event.target.value = ''
+}
 
 // 生成官方格式 JSON 输出
 const jsonOutput = computed(() => {
@@ -218,5 +272,56 @@ function downloadFile() {
 @keyframes slideUp {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.divider {
+  height: 1px;
+  background: var(--outline-variant);
+  margin: 24px 0;
+}
+
+.import-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-input {
+  display: none;
+}
+
+.import-btn {
+  color: var(--on-surface);
+  background: var(--surface-container-high);
+  border: 2px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.import-btn:hover {
+  background: var(--surface-container-highest);
+  border-color: var(--outline);
+}
+
+.import-message {
+  margin-top: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.import-message.success {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.import-message.error {
+  background: rgba(244, 67, 54, 0.1);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
 }
 </style>

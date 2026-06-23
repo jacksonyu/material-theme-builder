@@ -141,7 +141,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ALL_COLOR_ROLES, type ToneOverrides, type ToneOverride } from '../services/color-service'
+import { ALL_COLOR_ROLES, type ToneOverrides } from '../services/color-service'
 
 const props = defineProps<{
   modelValue: ToneOverrides
